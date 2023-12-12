@@ -67,18 +67,12 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
 
             # TODO: Fetch the ICMP header from the IP packet
             # Soluton can be implemented in 6 lines of Python code.
-        
-        recsum = checksum("".join( map(chr, recPacket))) 
-        print(recsum)
-        icmp_header = struct.unpack("bbHHh", recPacket[:struct.calcsize("bbHHh")])
-        print(icmp_header)
-        checksum = icmp_header[2]
-        if recsum == checksum:
-            print("Checksum verification passed.")
-        else:
-            print("Checksum verification failed.")
-        print(f"ICMP Type: {icmp_header[0]}, ICMP Code: {icmp_header[1]}, ICMP ID: {icmp_header[3]}, ICMP Seq: {icmp_header[4]}")
-
+        ttl = struct.unpack("!B", recPacket[8:9])[0]
+        icmp_packet = recPacket[20:]
+        icmp_header = struct.unpack("bbHHh", icmp_packet[:struct.calcsize("bbHHh")])
+        print(f"ICMP Type: {icmp_header[0]}, ICMP Code: {icmp_header[1]}, ICMP Checksum: {icmp_header[2]}, ICMP ID: {icmp_header[3]}, ICMP Seq: {icmp_header[4]}")
+        print(f"Time-To-Leave: {ttl}")
+        rtt = time.time() - struct.unpack("d", icmp_packet[struct.calcsize("bbHHh"):])[0]
         #-------------#
         # Fill in end #
         #-------------#
@@ -88,7 +82,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         if timeLeft <= 0:
             return "Request timed out."
         else:
-            return howLongInSelect
+            return rtt
 
 def sendOnePing(mySocket, destAddr, ID):
     # Header is type (8), code (8), checksum (16), id (16), sequence (16)
@@ -102,7 +96,6 @@ def sendOnePing(mySocket, destAddr, ID):
 
     # Calculate the checksum on the data and the dummy header. 
     myChecksum = checksum(''.join(map(chr, header+data)))
-    print(myChecksum)
 
     # Get the right checksum, and put in the header 
     if sys.platform == 'darwin':
@@ -110,11 +103,10 @@ def sendOnePing(mySocket, destAddr, ID):
         myChecksum = htons(myChecksum) & 0xffff
     else:
         myChecksum = htons(myChecksum)
-
     header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, myChecksum, ID, 1) 
     packet = header + data
-    myChecksum = checksum(''.join(map(chr, header+data)))
-    print(myChecksum)
+    decode_header = struct.unpack("bbHHh", packet[:struct.calcsize("bbHHh")])
+    print(decode_header)
 
     mySocket.sendto(packet, (destAddr, 1)) # AF_INET address must be tuple, not str 
     # Both LISTS and TUPLES consist of a number of objects
