@@ -59,6 +59,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
 
         timeReceived = time.time()
         recPacket, addr = mySocket.recvfrom(1024)
+        
 
         #---------------#
         # Fill in start #
@@ -66,6 +67,17 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
 
             # TODO: Fetch the ICMP header from the IP packet
             # Soluton can be implemented in 6 lines of Python code.
+        
+        recsum = checksum("".join( map(chr, recPacket))) 
+        print(recsum)
+        icmp_header = struct.unpack("bbHHh", recPacket[:struct.calcsize("bbHHh")])
+        print(icmp_header)
+        checksum = icmp_header[2]
+        if recsum == checksum:
+            print("Checksum verification passed.")
+        else:
+            print("Checksum verification failed.")
+        print(f"ICMP Type: {icmp_header[0]}, ICMP Code: {icmp_header[1]}, ICMP ID: {icmp_header[3]}, ICMP Seq: {icmp_header[4]}")
 
         #-------------#
         # Fill in end #
@@ -75,6 +87,8 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         
         if timeLeft <= 0:
             return "Request timed out."
+        else:
+            return howLongInSelect
 
 def sendOnePing(mySocket, destAddr, ID):
     # Header is type (8), code (8), checksum (16), id (16), sequence (16)
@@ -88,6 +102,7 @@ def sendOnePing(mySocket, destAddr, ID):
 
     # Calculate the checksum on the data and the dummy header. 
     myChecksum = checksum(''.join(map(chr, header+data)))
+    print(myChecksum)
 
     # Get the right checksum, and put in the header 
     if sys.platform == 'darwin':
@@ -98,6 +113,8 @@ def sendOnePing(mySocket, destAddr, ID):
 
     header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, myChecksum, ID, 1) 
     packet = header + data
+    myChecksum = checksum(''.join(map(chr, header+data)))
+    print(myChecksum)
 
     mySocket.sendto(packet, (destAddr, 1)) # AF_INET address must be tuple, not str 
     # Both LISTS and TUPLES consist of a number of objects
@@ -136,5 +153,6 @@ def ping(host, timeout=1, repeat=3):
 # Runs program
 if __name__ == "__main__":
     # get target address from command line
-    target = sys.argv[1]
+    target = "131.229.195.83"
+    # target = sys.argv[1]
     ping(target)
