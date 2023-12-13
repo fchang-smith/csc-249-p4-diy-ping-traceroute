@@ -49,9 +49,9 @@ def build_packet():
     return packet
 
 def get_route(hostname):
-    timeLeft = TIMEOUT
     for ttl in range(1,MAX_HOPS):
         for tries in range(TRIES):
+            timeLeft = TIMEOUT # move this line into the for loop
             destAddr = gethostbyname(hostname)
 
             #---------------#
@@ -73,7 +73,7 @@ def get_route(hostname):
 
             try:
                 d = build_packet()
-                mySocket.sendto(d, (hostname, 0))
+                mySocket.sendto(d, (hostname, 0)) 
                 t= time.time()
                 startedSelect = time.time()
                 whatReady = select.select([mySocket], [], [], timeLeft)
@@ -132,6 +132,6 @@ def get_route(hostname):
 
 # Runs program
 if __name__ == "__main__":
-    target = "18.155.129.64"
+    target = "8.8.8.8"
     # target = sys.argv[1]
     get_route(target)
