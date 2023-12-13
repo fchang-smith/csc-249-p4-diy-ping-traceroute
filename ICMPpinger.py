@@ -147,6 +147,6 @@ def ping(host, timeout=1, repeat=3):
 # Runs program
 if __name__ == "__main__":
     # get target address from command line
-    target = "131.229.195.83"
+    target = "18.155.129.64"
     # target = sys.argv[1]
     ping(target)
