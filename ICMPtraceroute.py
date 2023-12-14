@@ -42,7 +42,7 @@ def build_packet():
     else:
         myChecksum = htons(myChecksum)
     header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, myChecksum, ID, 1) 
-    
+
     #-------------#
     # Fill in end #
     #-------------#
@@ -135,6 +135,6 @@ def get_route(hostname):
 
 # Runs program
 if __name__ == "__main__":
-    target = "8.8.8.8"
+    target = "18.155.129.64"
     # target = sys.argv[1]
     get_route(target)
