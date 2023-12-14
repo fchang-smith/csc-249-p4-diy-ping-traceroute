@@ -135,6 +135,5 @@ def get_route(hostname):
 
 # Runs program
 if __name__ == "__main__":
-    target = "18.155.129.64"
-    # target = sys.argv[1]
+    target = sys.argv[1]
     get_route(target)
